@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Bash syntax
+        run: |
+          for script in ghopen install.sh uninstall.sh setup_mac.sh run-tests.sh run-install-tests.sh; do
+            bash -n "$script"
+          done
+      - name: Test command
+        run: bash run-tests.sh
+      - name: Test installers
+        run: bash run-install-tests.sh
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell and test installer integration
+        shell: pwsh
+        run: ./run-install-tests.ps1
