@@ -5,7 +5,9 @@ Open the repo you're in on GitHub, or its pull request if there is one
 Windows · macOS
 
 <!-- media: hero -->
-<!-- ![ghopen](docs/hero.png) -->
+![Running ghopen in a repo's terminal, and the repo's GitHub page opening in the browser](docs/before-after.png)
+
+[Watch it run (9 seconds)](docs/demo.mp4)
 <!-- /media: hero -->
 
 ## What it is
