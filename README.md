@@ -93,7 +93,7 @@ The macOS launcher also tries the remote URL fallback if both GitHub CLI command
 
 - **Not a git repository:** run the command from inside a Git checkout.
 - **No origin remote found:** add an `origin` remote, or install and authenticate `gh` so it can find the repo.
-- **Not a GitHub remote:** the fallback expects a GitHub URL. It doesn't handle other hosting services.
+- **Not a GitHub remote:** the fallback expects a github.com remote, over SSH or HTTPS, pointing at `owner/repo`. It doesn't handle other hosting services or GitHub Enterprise.
 - **Command not found:** check that the install directory is on PATH, then open a new terminal.
 - **PRs aren't opening:** check `gh auth status`. Without a working GitHub CLI, PR detection isn't available.
 

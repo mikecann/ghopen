@@ -13,6 +13,50 @@ foreach ($file in Get-ChildItem -LiteralPath $PSScriptRoot -Recurse -Filter '*.p
 }
 Write-Host 'PowerShell parse checks passed'
 
+# ghopen.bat's no-gh fallback hands the URL to Start-Process, which would also run a program or
+# open a local file. Only remotes that point exactly at github.com may come out the other end.
+$openRemote = Join-Path $PSScriptRoot 'open-remote.ps1'
+$shells = @((Get-Process -Id $PID).Path)
+if ($env:OS -eq 'Windows_NT') { $shells += 'powershell.exe' } # ghopen.bat runs Windows PowerShell 5.1
+function Invoke-OpenRemote([string]$Shell, [string]$Remote) {
+    $previous = $env:REMOTE
+    $env:REMOTE = $Remote
+    try {
+        $output = & $Shell -NoProfile -ExecutionPolicy Bypass -File $openRemote -PrintOnly 2>$null
+        return @{ Output = "$output"; Status = $LASTEXITCODE }
+    } finally { $env:REMOTE = $previous }
+}
+$accepted = @{
+    'git@github.com:mike/repo.git' = 'https://github.com/mike/repo'
+    'ssh://git@github.com/mike/repo.git' = 'https://github.com/mike/repo'
+    'https://github.com/mike/repo' = 'https://github.com/mike/repo'
+    'http://github.com/mike/my.repo/' = 'https://github.com/mike/my.repo'
+    'git://github.com/mike-c/repo_1.git' = 'https://github.com/mike-c/repo_1'
+}
+$rejected = @(
+    '',
+    'git@gitlab.com:mike/repo.git',
+    'https://github.com.example.com/mike/repo',
+    'https://example.com/github.com/mike/repo',
+    'https://token@github.com/mike/repo',
+    'file:///C:/github.com/tool.exe',
+    'C:\github.com\tool.exe',
+    '..\github.com\tool.cmd',
+    'https://github.com/mike/repo/../../../tool.exe',
+    'https://github.com/mike/repo" & calc & "'
+)
+foreach ($shell in $shells) {
+    foreach ($remote in $accepted.Keys) {
+        $result = Invoke-OpenRemote $shell $remote
+        Assert-True ($result.Status -eq 0 -and $result.Output -eq $accepted[$remote]) "$shell should open $($accepted[$remote]) for $remote, got '$($result.Output)' ($($result.Status))"
+    }
+    foreach ($remote in $rejected) {
+        $result = Invoke-OpenRemote $shell $remote
+        Assert-True ($result.Status -eq 1 -and $result.Output -eq '') "$shell should reject '$remote', got '$($result.Output)' ($($result.Status))"
+    }
+}
+Write-Host 'GitHub remote fallback tests passed'
+
 . (Join-Path $PSScriptRoot 'install-lib.ps1')
 $testRoot = Join-Path ([System.IO.Path]::GetTempPath()) "ghopen-tests-$([guid]::NewGuid())"
 $registryBase = "HKCU:\Software\ghopen-tests-$([guid]::NewGuid())"
