@@ -11,6 +11,10 @@ param(
     [switch]$PrintOnly
 )
 
+# Some credential setups write https://user@github.com/... or https://user:token@github.com/...
+# The page never needs that part, so drop it (and keep it out of the error message too).
+$Remote = $Remote -replace '^(https?://)[^@/]*@', '$1'
+
 $prefixes = @('git@github.com:', 'ssh://git@github.com/', 'https://github.com/', 'http://github.com/', 'git://github.com/')
 $repoPath = $null
 foreach ($prefix in $prefixes) {
