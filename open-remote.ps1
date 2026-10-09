@@ -24,7 +24,8 @@ foreach ($prefix in $prefixes) {
     }
 }
 
-if ($null -eq $repoPath -or $repoPath -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') {
+# `.` and `..` would pass the character check, then the browser would resolve them to another page.
+if ($null -eq $repoPath -or $repoPath -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$' -or $repoPath -match '(^|/)\.{1,2}(/|$)') {
     [Console]::Error.WriteLine("Not a GitHub remote: $Remote")
     exit 1
 }

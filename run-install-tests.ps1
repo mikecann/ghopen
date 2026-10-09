@@ -32,6 +32,7 @@ $accepted = @{
     'https://github.com/mike/repo' = 'https://github.com/mike/repo'
     'http://github.com/mike/my.repo/' = 'https://github.com/mike/my.repo'
     'git://github.com/mike-c/repo_1.git' = 'https://github.com/mike-c/repo_1'
+    'https://github.com/mike/.github' = 'https://github.com/mike/.github'
     # Some credential setups put a user or token before the host. It's dropped, never opened.
     'https://token@github.com/mike/repo.git' = 'https://github.com/mike/repo'
     'https://mike:secret@github.com/mike/repo' = 'https://github.com/mike/repo'
@@ -48,6 +49,9 @@ $rejected = @(
     'C:\github.com\tool.exe',
     '..\github.com\tool.cmd',
     'https://github.com/mike/repo/../../../tool.exe',
+    'https://github.com/../victim',
+    'https://github.com/mike/..',
+    'git@github.com:./repo.git',
     'https://github.com/mike/repo" & calc & "'
 )
 foreach ($shell in $shells) {
@@ -145,7 +149,8 @@ try {
             $info.UseShellExecute = $false
             $info.RedirectStandardOutput = $true
             $info.EnvironmentVariables['PATH'] = $noGhPath
-            $info.EnvironmentVariables.Remove('REMOTE')
+            # A stale REMOTE from the caller must be cleared by the batch file, never opened.
+            $info.EnvironmentVariables['REMOTE'] = 'inherited value'
             $process = [System.Diagnostics.Process]::Start($info)
             $output = $process.StandardOutput.ReadToEnd()
             $process.WaitForExit()
