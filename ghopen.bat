@@ -23,17 +23,15 @@ exit /b 0
 :no_gh
 :: gh CLI not installed - parse origin remote and open manually
 echo Opening repo...
+set "REMOTE="
 for /f "tokens=*" %%i in ('git remote get-url origin 2^>nul') do set "REMOTE=%%i"
-if "%REMOTE%"=="" (
+:: Use "if defined". Expanding the variable here would let quotes or ampersands in the remote run as commands.
+if not defined REMOTE (
     echo No origin remote found.
     echo Tip: install the GitHub CLI ^(gh^) for smarter GitHub navigation.
     exit /b 1
 )
 
-powershell -NoProfile -Command ^
-  "$url = $env:REMOTE;" ^
-  "$url = $url -replace '^git@github\.com:', 'https://github.com/';" ^
-  "$url = $url -replace '\.git$', '';" ^
-  "if ($url -match 'github\.com') { Start-Process $url; exit 0 }" ^
-  "else { Write-Error ('Not a GitHub remote: ' + $url); exit 1 }"
+:: open-remote.ps1 reads REMOTE from the environment and only opens https://github.com pages.
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0open-remote.ps1"
 exit /b %errorlevel%

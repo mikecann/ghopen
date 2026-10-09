@@ -21,7 +21,7 @@
 ## Implementation
 
 - `ghopen` is the Bash launcher. It tries `gh pr view --web`, then `gh browse`, then parses `origin` and uses `open` or `xdg-open`. `GHOPEN_OPEN_COMMAND` can override the opener.
-- `ghopen.bat` is the Windows implementation. It tries the PR first, then `gh browse`. Without `gh`, it parses `origin` and uses PowerShell to launch the browser.
+- `ghopen.bat` is the Windows implementation. It tries the PR first, then `gh browse`. Without `gh`, it passes `origin` to `open-remote.ps1` through the `REMOTE` environment variable. That script drops any `user@` or `user:token@` from an HTTPS remote, only accepts remotes that point exactly at github.com, and opens the rebuilt `https://github.com/owner/repo` URL, because `Start-Process` would also run a program or open a local file. Never expand the remote with `%REMOTE%` in the batch file. `run-install-tests.ps1` runs `ghopen.bat` on Windows with `gh` hidden and a remote that tries to break out of cmd's quotes.
 - `install.ps1` writes `ghopen.bat` and an extensionless Git Bash shim to `C:\dev\tools`, converts `icons/world_go.png` to `%LOCALAPPDATA%\ghopen\icons\ghopen.ico`, and registers `GhOpen` under the per-user folder and folder-background `MikesTools` menus.
 - `install-lib.ps1` contains only the helpers needed for those integrations.
 - `install.sh` installs a symlink into `~/.local/bin` or a supplied destination. `setup_mac.sh` delegates to it for compatibility.
